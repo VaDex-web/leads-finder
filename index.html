@@ -1,0 +1,389 @@
+<a href="x">
+  ${t}`q`
+</a><!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Поиск клиентов</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-bg-color,#fff);
+  --bg2:var(--tg-theme-secondary-bg-color,#f1f2f6);
+  --text:var(--tg-theme-text-color,#111);
+  --hint:var(--tg-theme-hint-color,#8a8f99);
+  --link:var(--tg-theme-link-color,#2a7ae2);
+  --btn:var(--tg-theme-button-color,#2a7ae2);
+  --btnt:var(--tg-theme-button-text-color,#fff);
+  --red:#e5484d;--green:#30a46c;--orange:#f08c00;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg2);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:76px}
+.wrap{padding:12px 16px;max-width:640px;margin:0 auto}
+h2{font-size:13px;text-transform:uppercase;color:var(--hint);font-weight:600;margin:18px 4px 8px;letter-spacing:.03em}
+.card{background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px}
+label{display:block;font-size:13px;color:var(--hint);margin:0 0 4px 2px}
+input,select{width:100%;font:inherit;color:var(--text);background:var(--bg2);border:0;border-radius:10px;padding:11px 12px;outline:none;margin-bottom:12px}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{border:0;background:var(--bg2);color:var(--text);border-radius:16px;padding:6px 11px;font:inherit;font-size:13px}
+.chip.on{background:var(--btn);color:var(--btnt)}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:13px;font:inherit;font-weight:600;background:var(--btn);color:var(--btnt)}
+.btn.ghost{background:var(--bg2);color:var(--text);font-weight:500}
+.btn:disabled{opacity:.5}
+.check{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:14px}
+.check input{width:20px;height:20px;margin:0;accent-color:var(--btn)}
+.lead .name{font-weight:600;font-size:16px;margin-bottom:2px}
+.lead .meta{color:var(--hint);font-size:13px;margin-bottom:6px}
+.lead .line{font-size:14px;margin:3px 0}
+.lead .tag{display:inline-block;font-size:12px;border-radius:6px;padding:2px 7px;margin-bottom:6px}
+.tag.none{background:#e5484d22;color:var(--red)}
+.tag.weak{background:#f08c0022;color:var(--orange)}
+.acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.acts button{flex:1;min-width:80px;border:0;border-radius:10px;padding:9px 6px;font:inherit;font-size:13px;background:var(--bg2);color:var(--text)}
+.acts button.on{background:var(--btn);color:var(--btnt)}
+.status{display:flex;gap:6px;margin-top:6px}
+.status button{flex:1;border:0;border-radius:10px;padding:8px 4px;font:inherit;font-size:12px;background:var(--bg2);color:var(--text)}
+.status button.on.contacted{background:var(--link);color:#fff}
+.status button.on.client{background:var(--green);color:#fff}
+.status button.on.rejected{background:var(--red);color:#fff}
+.status button.on.new{background:var(--hint);color:#fff}
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--bg);border-top:1px solid #8881;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.tabs button{flex:1;border:0;background:none;color:var(--hint);font:inherit;font-size:12px;padding:6px 0;border-radius:10px}
+.tabs button b{display:block;font-size:20px;line-height:1.2}
+.tabs button.on{color:var(--btn)}
+.empty{text-align:center;color:var(--hint);padding:30px 10px}
+.msg{font-size:14px;padding:10px 12px;border-radius:10px;background:var(--bg);margin-bottom:10px}
+.msg.err{color:var(--red)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.stats div{background:var(--bg);border-radius:12px;padding:8px 4px;text-align:center;font-size:11px;color:var(--hint)}
+.stats div b{display:block;font-size:20px;color:var(--text)}
+.hide{display:none!important}
+.small{font-size:12px;color:var(--hint);margin:-6px 2px 12px}
+.progress{height:4px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-top:10px}
+.progress i{display:block;height:100%;background:var(--btn);width:0;transition:width .3s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ПОИСК -->
+<section id="tab-search">
+  <div id="needKey" class="msg err hide">Сначала укажи ключ Яндекса во вкладке «Настройки» ⚙️</div>
+  <div class="card">
+    <label>Город</label>
+    <input id="city" placeholder="Например: Батайск" autocomplete="off">
+    <label>Кого ищем</label>
+    <input id="what" placeholder="Например: кафе" autocomplete="off">
+    <div class="chips" id="cats"></div>
+    <div class="row">
+      <div>
+        <label>Сколько смотреть</label>
+        <select id="pages">
+          <option value="1">50 компаний</option>
+          <option value="2">100 компаний</option>
+          <option value="3" selected>150 компаний</option>
+          <option value="5">250 компаний</option>
+        </select>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="weak" checked> Показывать тех, у кого только VK / Instagram / визитка</label>
+    <button class="btn" id="go">🔎 Найти компании без сайта</button>
+    <div class="progress hide" id="prog"><i></i></div>
+  </div>
+  <div id="searchMsg"></div>
+  <div id="results"></div>
+</section>
+
+<!-- ЛИДЫ -->
+<section id="tab-leads" class="hide">
+  <div class="stats" id="stats"></div>
+  <div class="chips" id="filters"></div>
+  <input id="q" placeholder="Поиск по названию или адресу" autocomplete="off">
+  <div id="leads"></div>
+</section>
+
+<!-- НАСТРОЙКИ -->
+<section id="tab-settings" class="hide">
+  <h2>Ключ Яндекса</h2>
+  <div class="card">
+    <label>Ключ «API Поиска по организациям»</label>
+    <input id="key" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off">
+    <div class="small">Хранится только в твоём Telegram (облако Telegram), в коде сайта его нет.</div>
+    <button class="btn" id="saveKey">Сохранить</button>
+    <div class="small" style="margin-top:10px" id="usage"></div>
+  </div>
+  <h2>Данные</h2>
+  <div class="card">
+    <button class="btn ghost" id="copyAll">📋 Скопировать всех новых лидов</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" id="wipe" style="color:var(--red)">Удалить все сохранённые лиды</button>
+  </div>
+</section>
+
+</div>
+
+<nav class="tabs">
+  <button data-tab="search" class="on"><b>🔎</b>Поиск</button>
+  <button data-tab="leads"><b>📋</b>Лиды <span id="leadCount"></span></button>
+  <button data-tab="settings"><b>⚙️</b>Настройки</button>
+</nav>
+
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+const inTG = !!(tg && tg.initData);
+if (tg) { tg.ready(); tg.expand(); }
+
+// ---------- хранилище: облако Telegram, иначе localStorage ----------
+const useCloud = inTG && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9');
+const store = {
+  get(keys){ // -> {k:v}
+    if (!useCloud) { const o={}; keys.forEach(k=>{ try{o[k]=localStorage.getItem(k)}catch(e){} }); return Promise.resolve(o); }
+    return new Promise(res=>{
+      const out={}; const chunks=[]; for(let i=0;i<keys.length;i+=50) chunks.push(keys.slice(i,i+50));
+      if(!chunks.length) return res(out);
+      let left=chunks.length;
+      chunks.forEach(c=>tg.CloudStorage.getItems(c,(err,v)=>{ if(v) Object.assign(out,v); if(--left===0) res(out); }));
+    });
+  },
+  set(k,v){
+    if (!useCloud) { try{localStorage.setItem(k,v)}catch(e){} return Promise.resolve(); }
+    return new Promise(res=>tg.CloudStorage.setItem(k,v,()=>res()));
+  },
+  del(keys){
+    if (!useCloud) { keys.forEach(k=>{ try{localStorage.removeItem(k)}catch(e){} }); return Promise.resolve(); }
+    return new Promise(res=>{ if(!keys.length) return res(); tg.CloudStorage.removeItems(keys,()=>res()); });
+  },
+  keys(){
+    if (!useCloud) { try{ return Promise.resolve(Object.keys(localStorage)); }catch(e){ return Promise.resolve([]); } }
+    return new Promise(res=>tg.CloudStorage.getKeys((e,k)=>res(k||[])));
+  }
+};
+
+// ---------- состояние ----------
+let KEY = '';
+let leads = {};           // id -> lead
+let filter = 'new';
+const STATUS = {new:'🆕 Новый', contacted:'✉️ Написал', client:'💰 Клиент', rejected:'❌ Отказ'};
+const CATS = ['Кафе','Салон красоты','Барбершоп','Автосервис','Стоматология','Цветы','Ремонт телефонов','Фитнес','Шиномонтаж','Пекарня','Ногтевая студия','Химчистка'];
+const WEAK = ['clients.site','business.site','yandex.ru/profile','taplink','vk.com','vk.ru','instagram.com','t.me','telegram.me','ok.ru','wa.me','whatsapp','2gis.ru','avito.ru','facebook.com','youtube.com','dzen.ru','linktr.ee','mssg.me','tilda.ws'];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today = () => new Date().toISOString().slice(0,10);
+const haptic = t => { try{ tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(t||'light'); }catch(e){} };
+const toast = m => { if (inTG && tg.showAlert) tg.showAlert(m); else alert(m); };
+
+function siteKind(url){
+  if(!url) return 'none';
+  const l=url.toLowerCase();
+  return WEAK.some(w=>l.includes(w)) ? 'weak' : 'real';
+}
+
+// ---------- Яндекс ----------
+function yandexUrl(params){ return 'https://search-maps.yandex.ru/v1/?' + new URLSearchParams(params); }
+function jsonp(url){
+  return new Promise((res,rej)=>{
+    const cb='ycb'+Math.random().toString(36).slice(2);
+    const s=document.createElement('script');
+    const t=setTimeout(()=>{cleanup();rej(new Error('Яндекс не ответил'))},20000);
+    function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
+    window[cb]=d=>{cleanup();res(d)};
+    s.onerror=()=>{cleanup();rej(new Error('Ключ не принят Яндексом (проверь ключ в настройках)'))};
+    s.src=url+'&callback='+cb;
+    document.head.appendChild(s);
+  });
+}
+async function yandexSearch(text, skip){
+  const p={apikey:KEY,text,type:'biz',lang:'ru_RU',results:50,skip};
+  const url=yandexUrl(p);
+  let data;
+  try {
+    const r = await fetch(url);
+    if (r.status===403) throw new Error('Яндекс отклонил ключ (403). Новому ключу нужно ~15 минут на активацию.');
+    if (!r.ok) throw new Error('Ошибка Яндекса: '+r.status);
+    data = await r.json();
+  } catch(e) {
+    if (e.message.startsWith('Яндекс') || e.message.startsWith('Ошибка')) throw e;
+    data = await jsonp(url); // если браузер не пустил fetch (CORS)
+  }
+  await bumpUsage();
+  return (data.features||[]).map(f=>{
+    const m=(f.properties||{}).CompanyMetaData||{};
+    let url=m.url||'';
+    if(!url && m.Links) { const l=m.Links.find(x=>x.type==='self'||x.type==='site'); if(l) url=l.href; }
+    return {
+      id:String(m.id||''), name:m.name||'Без названия', address:m.address||'',
+      phones:(m.Phones||[]).map(p=>p.formatted).filter(Boolean),
+      cat:(m.Categories||[]).map(c=>c.name).join(', '),
+      hours:(m.Hours||{}).text||'', site:url,
+    };
+  });
+}
+async function bumpUsage(){
+  const k='u_'+today(); const v=await store.get([k]); const n=(+v[k]||0)+1;
+  await store.set(k,String(n)); showUsage(n);
+}
+function showUsage(n){ $('usage').textContent = `Запросов к Яндексу сегодня: ${n} из 1000 (1 запрос = 50 компаний)`; }
+
+// ---------- лиды ----------
+async function loadAll(){
+  const keys = await store.keys();
+  const cfg = await store.get(['cfg','u_'+today()]);
+  try{ const c=JSON.parse(cfg.cfg||'{}'); KEY=c.key||''; if(c.city) $('city').value=c.city; }catch(e){}
+  showUsage(+cfg['u_'+today()]||0);
+  $('key').value = KEY;
+  const lk = keys.filter(k=>k.startsWith('l_'));
+  const vals = await store.get(lk);
+  leads = {};
+  for (const k of lk) { try{ const l=JSON.parse(vals[k]); if(l&&l.id) leads[l.id]=l; }catch(e){} }
+  // старые служебные ключи прошлых дней — чистим
+  const oldU = keys.filter(k=>k.startsWith('u_') && k!=='u_'+today());
+  if (oldU.length) store.del(oldU);
+  $('needKey').classList.toggle('hide', !!KEY);
+  renderLeads();
+}
+async function saveCfg(){ await store.set('cfg', JSON.stringify({key:KEY, city:$('city').value.trim()})); }
+function saveLead(l){
+  const compact = {id:l.id,n:l.name,a:l.address,p:l.phones,c:l.cat,h:l.hours,s:l.site,st:l.status||'new',d:l.date,q:l.query};
+  return store.set('l_'+l.id, JSON.stringify(compact).slice(0,4000));
+}
+function unpack(l){ return l.n!==undefined ? {id:l.id,name:l.n,address:l.a,phones:l.p||[],cat:l.c,hours:l.h,site:l.s,status:l.st,date:l.d,query:l.q} : l; }
+
+function leadCard(l, mode){
+  l = unpack(l);
+  const kind = siteKind(l.site);
+  const phones = (l.phones||[]);
+  const st = l.status||'new';
+  return `<div class="card lead" data-id="${esc(l.id)}">
+    <span class="tag ${kind}">${kind==='weak'?'🌐 только соцсеть / визитка':'🚫 сайта нет'}</span>
+    <div class="name">${esc(l.name)}</div>
+    ${l.cat?`<div class="meta">${esc(l.cat)}</div>`:''}
+    ${l.address?`<div class="line">📍 ${esc(l.address)}</div>`:''}
+    <div class="line">📞 ${phones.length?phones.map(esc).join(', '):'<span style="color:var(--hint)">телефон не указан</span>'}</div>
+    ${l.hours?`<div class="line">🕒 ${esc(l.hours)}</div>`:''}
+    ${kind==='weak'?`<div class="line" style="word-break:break-all">🔗 ${esc(l.site)}</div>`:''}
+    <div class="acts">
+      <button data-act="map">🗺 Карта</button>
+      ${phones.length?`<button data-act="call">📞 Позвонить</button><button data-act="wa">💬 WhatsApp</button>`:''}
+      <button data-act="copy">📋 Копировать</button>
+    </div>
+    <div class="status">${Object.keys(STATUS).map(s=>`<button data-st="${s}" class="${s}${s===st?' on':''}">${STATUS[s]}</button>`).join('')}</div>
+  </div>`;
+}
+
+function renderLeads(){
+  const all = Object.values(leads).map(unpack);
+  const cnt = {new:0,contacted:0,client:0,rejected:0};
+  all.forEach(l=>cnt[l.status||'new']++);
+  $('leadCount').textContent = cnt.new ? `(${cnt.new})` : '';
+  $('stats').innerHTML = Object.keys(STATUS).map(s=>`<div><b>${cnt[s]}</b>${STATUS[s].split(' ')[1]}</div>`).join('');
+  $('filters').innerHTML = [['all','Все'],...Object.entries(STATUS)].map(([k,v])=>`<button class="chip${filter===k?' on':''}" data-f="${k}">${v}</button>`).join('');
+  const q = $('q').value.trim().toLowerCase();
+  const list = all.filter(l=>(filter==='all'||(l.status||'new')===filter) && (!q || (l.name+' '+l.address+' '+l.cat).toLowerCase().includes(q)))
+                  .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  $('leads').innerHTML = list.length ? list.map(l=>leadCard(l)).join('') : `<div class="empty">Здесь пока пусто.<br>Найди компании во вкладке «Поиск».</div>`;
+}
+
+// ---------- действия с карточкой ----------
+function openLink(u){ if(inTG) tg.openLink(u); else window.open(u,'_blank'); }
+async function onCardClick(e){
+  const card = e.target.closest('.lead'); if(!card) return;
+  const id = card.dataset.id; const l = unpack(leads[id]||{}); if(!l.id) return;
+  const btn = e.target.closest('button'); if(!btn) return;
+  haptic();
+  if (btn.dataset.st) {
+    l.status = btn.dataset.st; leads[id] = l; await saveLead(l);
+    card.querySelectorAll('.status button').forEach(b=>b.classList.toggle('on', b.dataset.st===l.status));
+    if (card.closest('#leads')) renderLeads(); else renderLeadsCountOnly();
+    return;
+  }
+  const phone = (l.phones||[])[0]||'';
+  const digits = phone.replace(/\D/g,'').replace(/^8(?=\d{10}$)/,'7');
+  if (btn.dataset.act==='map') openLink(`https://yandex.ru/maps/org/${id}/`);
+  if (btn.dataset.act==='call') { location.href = 'tel:+'+digits; }
+  if (btn.dataset.act==='wa') openLink(`https://wa.me/${digits}`);
+  if (btn.dataset.act==='copy') {
+    const txt = `${l.name}\n${l.cat||''}\n${l.address||''}\n${(l.phones||[]).join(', ')}\nhttps://yandex.ru/maps/org/${id}/`;
+    try{ await navigator.clipboard.writeText(txt); toast('Скопировано'); }catch(e){ toast(txt); }
+  }
+}
+function renderLeadsCountOnly(){ const n=Object.values(leads).map(unpack).filter(l=>(l.status||'new')==='new').length; $('leadCount').textContent=n?`(${n})`:''; }
+
+// ---------- поиск ----------
+async function runSearch(){
+  const city=$('city').value.trim(), what=$('what').value.trim();
+  if(!KEY){ showTab('settings'); toast('Вставь ключ Яндекса и нажми «Сохранить»'); return; }
+  if(!what){ toast('Напиши, кого ищем: например «кафе»'); return; }
+  const pages=+$('pages').value, weakOk=$('weak').checked;
+  const query=(what+' '+city).trim();
+  saveCfg();
+  $('go').disabled=true; $('prog').classList.remove('hide'); const bar=$('prog').firstElementChild; bar.style.width='5%';
+  if (inTG) tg.MainButton.showProgress && tg.MainButton.showProgress();
+  $('searchMsg').innerHTML=''; $('results').innerHTML='';
+  let found=[], err='';
+  for(let p=0;p<pages;p++){
+    try{
+      const part=await yandexSearch(query,p*50);
+      found=found.concat(part); bar.style.width=Math.round((p+1)/pages*100)+'%';
+      if(part.length<50) break;
+    }catch(e){ err=e.message; break; }
+  }
+  let fresh=[], already=0, withSite=0;
+  const date=new Date().toISOString();
+  for(const o of found){
+    if(!o.id) continue;
+    const k=siteKind(o.site);
+    if(k==='real'){withSite++;continue;}
+    if(k==='weak' && !weakOk) continue;
+    if(leads[o.id]){already++;continue;}
+    o.status='new'; o.date=date; o.query=query;
+    leads[o.id]=o; fresh.push(o);
+  }
+  await Promise.all(fresh.map(saveLead));
+  $('go').disabled=false; setTimeout(()=>$('prog').classList.add('hide'),400);
+  if (inTG && tg.MainButton.hideProgress) tg.MainButton.hideProgress();
+  haptic('medium');
+  $('searchMsg').innerHTML =
+    (err?`<div class="msg err">⚠️ ${esc(err)}</div>`:'') +
+    (found.length?`<div class="msg">Просмотрено: <b>${found.length}</b> · с сайтом: ${withSite} · уже были в списке: ${already}<br>Новых без сайта: <b>${fresh.length}</b></div>`:'');
+  $('results').innerHTML = fresh.map(l=>leadCard(l)).join('') || (!err?`<div class="empty">Новых компаний без сайта не нашлось.<br>Попробуй другую категорию или город.</div>`:'');
+  renderLeadsCountOnly();
+}
+
+// ---------- вкладки и кнопки ----------
+function showTab(t){
+  ['search','leads','settings'].forEach(x=>$('tab-'+x).classList.toggle('hide',x!==t));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  if(t==='leads') renderLeads();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{haptic();showTab(b.dataset.tab)});
+$('cats').innerHTML = CATS.map(c=>`<button class="chip">${c}</button>`).join('');
+$('cats').onclick = e=>{ const b=e.target.closest('.chip'); if(!b) return; haptic(); $('what').value=b.textContent; document.querySelectorAll('#cats .chip').forEach(x=>x.classList.toggle('on',x===b)); };
+$('go').onclick = runSearch;
+$('results').onclick = onCardClick;
+$('leads').onclick = onCardClick;
+$('filters').onclick = e=>{ const b=e.target.closest('.chip'); if(!b) return; filter=b.dataset.f; renderLeads(); };
+$('q').oninput = renderLeads;
+$('saveKey').onclick = async ()=>{
+  KEY=$('key').value.trim(); await saveCfg(); $('needKey').classList.toggle('hide',!!KEY);
+  haptic('medium'); toast(KEY?'Ключ сохранён ✅':'Ключ удалён');
+};
+$('copyAll').onclick = async ()=>{
+  const list=Object.values(leads).map(unpack).filter(l=>(l.status||'new')==='new');
+  if(!list.length) return toast('Новых лидов нет');
+  const txt=list.map(l=>`${l.name} | ${l.cat||''} | ${l.address||''} | ${(l.phones||[]).join(', ')} | https://yandex.ru/maps/org/${l.id}/`).join('\n');
+  try{ await navigator.clipboard.writeText(txt); toast(`Скопировано: ${list.length}`); }catch(e){ toast(txt.slice(0,3000)); }
+};
+$('wipe').onclick = ()=>{
+  const go=async()=>{ await store.del(Object.keys(leads).map(id=>'l_'+id)); leads={}; renderLeads(); toast('Удалено'); };
+  if(inTG && tg.showConfirm) tg.showConfirm('Удалить все сохранённые лиды?', ok=>ok&&go()); else if(confirm('Удалить все сохранённые лиды?')) go();
+};
+
+loadAll();
+</script>
+</body>
+</html>
