@@ -209,13 +209,18 @@ async function findArea(city){
 }
 const OVERPASS = ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
 async function overpass(q){
-  let last;
-  for(const url of OVERPASS){
-    try{
-      const r=await fetch(url,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'}});
-      if(r.ok) return await r.json();
-      last=new Error('Сервер карт занят ('+r.status+'), попробуй через минуту');
-    }catch(e){ last=new Error('Нет связи с сервером карт'); }
+  let last=new Error('Сервер карт не отвечает, попробуй через минуту');
+  for(let attempt=0; attempt<3; attempt++){
+    for(const url of OVERPASS){
+      try{
+        const r=await fetch(url,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:AbortSignal.timeout(45000)});
+        const txt=await r.text();
+        if(r.ok && txt.trim().startsWith('{')) return JSON.parse(txt);
+        last=new Error('Сервер карт занят, попробуй через минуту');
+      }catch(e){ last=new Error('Сервер карт не отвечает, попробуй через минуту'); }
+    }
+    progress(.05,'Сервер карт занят, жду и пробую ещё раз…');
+    await sleep(5000*(attempt+1));
   }
   throw last;
 }
@@ -238,7 +243,7 @@ function toLead(e){
 async function searchOSM(city, catName){
   const area=await findArea(city);
   const parts=CATS[catName].map(s=>s+'["name"](area.a);').join('');
-  const q=`[out:json][timeout:90];area(id:${area.id})->.a;(${parts});out tags center 3000;`;
+  const q=`[out:json][timeout:90];area(id:${area.id})->.a;(${parts});out tags 3000;`;
   const d=await overpass(q);
   const seen=new Set(), out=[];
   for(const e of d.elements||[]){ if(!e.tags||!e.tags.name) continue; const l=toLead(e); if(seen.has(l.id)) continue; seen.add(l.id); out.push(l); }
