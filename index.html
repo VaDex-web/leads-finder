@@ -14,7 +14,7 @@
   --link:var(--tg-theme-link-color,#2a7ae2);
   --btn:var(--tg-theme-button-color,#2a7ae2);
   --btnt:var(--tg-theme-button-text-color,#fff);
-  --red:#e5484d;--green:#30a46c;--orange:#f08c00;
+  --red:#e5484d;--green:#30a46c;--orange:#f08c00;--violet:#8e4ec6;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg2);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:76px}
@@ -23,11 +23,12 @@ h2{font-size:13px;text-transform:uppercase;color:var(--hint);font-weight:600;mar
 .card{background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px}
 label{display:block;font-size:13px;color:var(--hint);margin:0 0 4px 2px}
 input,select{width:100%;font:inherit;color:var(--text);background:var(--bg2);border:0;border-radius:10px;padding:11px 12px;outline:none;margin-bottom:12px}
-.row{display:flex;gap:8px}
-.row>*{flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .chip{border:0;background:var(--bg2);color:var(--text);border-radius:16px;padding:6px 11px;font:inherit;font-size:13px}
 .chip.on{background:var(--btn);color:var(--btnt)}
+.seg{display:flex;background:var(--bg2);border-radius:10px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;color:var(--text);font:inherit;font-size:13px;padding:8px 4px;border-radius:8px}
+.seg button.on{background:var(--bg);box-shadow:0 1px 3px #0002;font-weight:600}
 .btn{display:block;width:100%;border:0;border-radius:12px;padding:13px;font:inherit;font-weight:600;background:var(--btn);color:var(--btnt)}
 .btn.ghost{background:var(--bg2);color:var(--text);font-weight:500}
 .btn:disabled{opacity:.5}
@@ -35,13 +36,15 @@ input,select{width:100%;font:inherit;color:var(--text);background:var(--bg2);bor
 .check input{width:20px;height:20px;margin:0;accent-color:var(--btn)}
 .lead .name{font-weight:600;font-size:16px;margin-bottom:2px}
 .lead .meta{color:var(--hint);font-size:13px;margin-bottom:6px}
-.lead .line{font-size:14px;margin:3px 0}
+.lead .line{font-size:14px;margin:3px 0;word-break:break-word}
 .lead .tag{display:inline-block;font-size:12px;border-radius:6px;padding:2px 7px;margin-bottom:6px}
 .tag.none{background:#e5484d22;color:var(--red)}
 .tag.weak{background:#f08c0022;color:var(--orange)}
+.tag.old{background:#8e4ec622;color:var(--violet)}
+.reasons{margin:6px 0 0;padding-left:18px;font-size:13px;color:var(--text)}
+.reasons li{margin:2px 0}
 .acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .acts button{flex:1;min-width:80px;border:0;border-radius:10px;padding:9px 6px;font:inherit;font-size:13px;background:var(--bg2);color:var(--text)}
-.acts button.on{background:var(--btn);color:var(--btnt)}
 .status{display:flex;gap:6px;margin-top:6px}
 .status button{flex:1;border:0;border-radius:10px;padding:8px 4px;font:inherit;font-size:12px;background:var(--bg2);color:var(--text)}
 .status button.on.contacted{background:var(--link);color:#fff}
@@ -62,6 +65,7 @@ input,select{width:100%;font:inherit;color:var(--text);background:var(--bg2);bor
 .small{font-size:12px;color:var(--hint);margin:-6px 2px 12px}
 .progress{height:4px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-top:10px}
 .progress i{display:block;height:100%;background:var(--btn);width:0;transition:width .3s}
+.ptext{font-size:12px;color:var(--hint);margin-top:6px;text-align:center}
 </style>
 </head>
 <body>
@@ -69,27 +73,22 @@ input,select{width:100%;font:inherit;color:var(--text);background:var(--bg2);bor
 
 <!-- ПОИСК -->
 <section id="tab-search">
-  <div id="needKey" class="msg err hide">Сначала укажи ключ Яндекса во вкладке «Настройки» ⚙️</div>
   <div class="card">
     <label>Город</label>
     <input id="city" placeholder="Например: Батайск" autocomplete="off">
     <label>Кого ищем</label>
-    <input id="what" placeholder="Например: кафе" autocomplete="off">
     <div class="chips" id="cats"></div>
-    <div class="row">
-      <div>
-        <label>Сколько смотреть</label>
-        <select id="pages">
-          <option value="1">50 компаний</option>
-          <option value="2">100 компаний</option>
-          <option value="3" selected>150 компаний</option>
-          <option value="5">250 компаний</option>
-        </select>
-      </div>
+    <label>Что ищем</label>
+    <div class="seg" id="mode">
+      <button data-m="none" class="on">🚫 Без сайта</button>
+      <button data-m="old">🕰 Старый сайт</button>
+      <button data-m="both">Всё</button>
     </div>
-    <label class="check"><input type="checkbox" id="weak" checked> Показывать тех, у кого только VK / Instagram / визитка</label>
-    <button class="btn" id="go">🔎 Найти компании без сайта</button>
+    <label class="check"><input type="checkbox" id="weak" checked> Считать «без сайта» тех, у кого только VK / Instagram</label>
+    <label class="check"><input type="checkbox" id="nochains" checked> Скрывать сетевые (Магнит, Пятёрочка и т.п.)</label>
+    <button class="btn" id="go">🔎 Найти</button>
     <div class="progress hide" id="prog"><i></i></div>
+    <div class="ptext hide" id="ptext"></div>
   </div>
   <div id="searchMsg"></div>
   <div id="results"></div>
@@ -105,13 +104,16 @@ input,select{width:100%;font:inherit;color:var(--text);background:var(--bg2);bor
 
 <!-- НАСТРОЙКИ -->
 <section id="tab-settings" class="hide">
-  <h2>Ключ Яндекса</h2>
+  <h2>Откуда данные</h2>
+  <div class="card" style="font-size:14px">
+    Компании берутся из OpenStreetMap — бесплатно и без ключа. Сайты проверяет твой сервер на Cloudflare.
+    <div class="small" style="margin:8px 0 0">В OSM есть не все компании города — небольшие точки иногда отсутствуют.</div>
+  </div>
+  <h2>Сервер проверки сайтов</h2>
   <div class="card">
-    <label>Ключ «API Поиска по организациям»</label>
-    <input id="key" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off">
-    <div class="small">Хранится только в твоём Telegram (облако Telegram), в коде сайта его нет.</div>
-    <button class="btn" id="saveKey">Сохранить</button>
-    <div class="small" style="margin-top:10px" id="usage"></div>
+    <label>Адрес сервера</label>
+    <input id="worker" placeholder="https://….workers.dev" autocomplete="off">
+    <button class="btn" id="saveWorker">Сохранить</button>
   </div>
   <h2>Данные</h2>
   <div class="card">
@@ -130,6 +132,7 @@ input,select{width:100%;font:inherit;color:var(--text);background:var(--bg2);bor
 </nav>
 
 <script>
+const DEFAULT_WORKER = 'https://site-checker.hoidex51.workers.dev';
 const tg = window.Telegram && Telegram.WebApp;
 const inTG = !!(tg && tg.initData);
 if (tg) { tg.ready(); tg.expand(); }
@@ -137,7 +140,7 @@ if (tg) { tg.ready(); tg.expand(); }
 // ---------- хранилище: облако Telegram, иначе localStorage ----------
 const useCloud = inTG && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9');
 const store = {
-  get(keys){ // -> {k:v}
+  get(keys){
     if (!useCloud) { const o={}; keys.forEach(k=>{ try{o[k]=localStorage.getItem(k)}catch(e){} }); return Promise.resolve(o); }
     return new Promise(res=>{
       const out={}; const chunks=[]; for(let i=0;i<keys.length;i+=50) chunks.push(keys.slice(i,i+50));
@@ -160,19 +163,34 @@ const store = {
   }
 };
 
-// ---------- состояние ----------
-let KEY = '';
-let leads = {};           // id -> lead
-let filter = 'new';
+// ---------- справочники ----------
 const STATUS = {new:'🆕 Новый', contacted:'✉️ Написал', client:'💰 Клиент', rejected:'❌ Отказ'};
-const CATS = ['Кафе','Салон красоты','Барбершоп','Автосервис','Стоматология','Цветы','Ремонт телефонов','Фитнес','Шиномонтаж','Пекарня','Ногтевая студия','Химчистка'];
-const WEAK = ['clients.site','business.site','yandex.ru/profile','taplink','vk.com','vk.ru','instagram.com','t.me','telegram.me','ok.ru','wa.me','whatsapp','2gis.ru','avito.ru','facebook.com','youtube.com','dzen.ru','linktr.ee','mssg.me','tilda.ws'];
+const CATS = {
+  'Все компании': ['nwr["shop"]','nwr["amenity"~"^(cafe|restaurant|fast_food|bar|pub|dentist|clinic|doctors|veterinary|car_wash|driving_school|kindergarten)$"]','nwr["craft"]','nwr["office"~"^(company|estate_agent|lawyer|notary|travel_agent|insurance|accountant)$"]','nwr["leisure"~"^(fitness_centre|sports_centre)$"]','nwr["tourism"~"^(hotel|guest_house|hostel)$"]'],
+  'Кафе и рестораны': ['nwr["amenity"~"^(cafe|restaurant|fast_food|bar|pub)$"]'],
+  'Красота': ['nwr["shop"~"^(beauty|hairdresser|cosmetics|massage|tattoo)$"]'],
+  'Авто': ['nwr["shop"~"^(car_repair|tyres|car_parts|car)$"]','nwr["amenity"="car_wash"]','nwr["craft"="car_repair"]'],
+  'Медицина': ['nwr["amenity"~"^(dentist|clinic|doctors|veterinary)$"]','nwr["healthcare"]'],
+  'Магазины': ['nwr["shop"]'],
+  'Ремонт и услуги': ['nwr["craft"]','nwr["shop"~"^(mobile_phone|electronics|computer|repair|dry_cleaning|laundry|tailor|shoe_repair)$"]'],
+  'Спорт': ['nwr["leisure"~"^(fitness_centre|sports_centre|dance)$"]'],
+  'Гостиницы': ['nwr["tourism"~"^(hotel|guest_house|hostel|motel)$"]'],
+  'Офисы': ['nwr["office"]'],
+};
+const KIND_RU = {cafe:'Кафе',restaurant:'Ресторан',fast_food:'Фастфуд',bar:'Бар',pub:'Паб',dentist:'Стоматология',clinic:'Клиника',doctors:'Врач',veterinary:'Ветклиника',car_wash:'Автомойка',beauty:'Салон красоты',hairdresser:'Парикмахерская',cosmetics:'Косметика',massage:'Массаж',tattoo:'Тату',car_repair:'Автосервис',tyres:'Шиномонтаж',car_parts:'Автозапчасти',car:'Автосалон',florist:'Цветы',mobile_phone:'Телефоны',electronics:'Электроника',computer:'Компьютеры',bakery:'Пекарня',clothes:'Одежда',shoes:'Обувь',furniture:'Мебель',hardware:'Хозтовары',convenience:'Продукты',supermarket:'Супермаркет',butcher:'Мясо',pet:'Зоотовары',optician:'Оптика',jewelry:'Ювелирный',gift:'Подарки',books:'Книги',fitness_centre:'Фитнес',sports_centre:'Спорт',hotel:'Гостиница',guest_house:'Гостевой дом',hostel:'Хостел',estate_agent:'Недвижимость',lawyer:'Юрист',notary:'Нотариус',travel_agent:'Турагентство',insurance:'Страхование',accountant:'Бухгалтерия',dry_cleaning:'Химчистка',laundry:'Прачечная',tailor:'Ателье',shoe_repair:'Ремонт обуви',driving_school:'Автошкола',kindergarten:'Детский сад'};
+const WEAK = ['vk.com','vk.ru','instagram.com','t.me','telegram.me','ok.ru','wa.me','whatsapp','facebook.com','youtube.com','dzen.ru','taplink','linktr.ee','mssg.me','2gis.ru','avito.ru','yandex.ru/profile','clients.site','business.site'];
 
 const $ = id => document.getElementById(id);
-const esc = s => String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const today = () => new Date().toISOString().slice(0,10);
+const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const haptic = t => { try{ tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(t||'light'); }catch(e){} };
 const toast = m => { if (inTG && tg.showAlert) tg.showAlert(m); else alert(m); };
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+let WORKER = DEFAULT_WORKER;
+let leads = {};
+let filter = 'new';
+let cat = 'Все компании';
+let mode = 'none';
 
 function siteKind(url){
   if(!url) return 'none';
@@ -180,91 +198,105 @@ function siteKind(url){
   return WEAK.some(w=>l.includes(w)) ? 'weak' : 'real';
 }
 
-// ---------- Яндекс ----------
-function yandexUrl(params){ return 'https://search-maps.yandex.ru/v1/?' + new URLSearchParams(params); }
-function jsonp(url){
-  return new Promise((res,rej)=>{
-    const cb='ycb'+Math.random().toString(36).slice(2);
-    const s=document.createElement('script');
-    const t=setTimeout(()=>{cleanup();rej(new Error('Яндекс не ответил'))},20000);
-    function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
-    window[cb]=d=>{cleanup();res(d)};
-    s.onerror=()=>{cleanup();rej(new Error('Ключ не принят Яндексом (проверь ключ в настройках)'))};
-    s.src=url+'&callback='+cb;
-    document.head.appendChild(s);
-  });
+// ---------- OpenStreetMap ----------
+async function findArea(city){
+  const u='https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=ru&countrycodes=ru,by,kz&q='+encodeURIComponent(city);
+  const r=await fetch(u); if(!r.ok) throw new Error('Не удалось найти город (Nominatim '+r.status+')');
+  const list=await r.json();
+  const rel=list.find(x=>x.osm_type==='relation' && /city|town|village|administrative/.test(x.type+x.addresstype)) || list.find(x=>x.osm_type==='relation');
+  if(!rel) throw new Error('Город «'+city+'» не найден. Проверь написание.');
+  return {id:3600000000+Number(rel.osm_id), name:rel.display_name.split(',')[0]};
 }
-async function yandexSearch(text, skip){
-  const p={apikey:KEY,text,type:'biz',lang:'ru_RU',results:50,skip};
-  const url=yandexUrl(p);
-  let data;
-  try {
-    const r = await fetch(url);
-    if (r.status===403) throw new Error('Яндекс отклонил ключ (403). Новому ключу нужно ~15 минут на активацию.');
-    if (!r.ok) throw new Error('Ошибка Яндекса: '+r.status);
-    data = await r.json();
-  } catch(e) {
-    if (e.message.startsWith('Яндекс') || e.message.startsWith('Ошибка')) throw e;
-    data = await jsonp(url); // если браузер не пустил fetch (CORS)
+const OVERPASS = ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+async function overpass(q){
+  let last;
+  for(const url of OVERPASS){
+    try{
+      const r=await fetch(url,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+      if(r.ok) return await r.json();
+      last=new Error('Сервер карт занят ('+r.status+'), попробуй через минуту');
+    }catch(e){ last=new Error('Нет связи с сервером карт'); }
   }
-  await bumpUsage();
-  return (data.features||[]).map(f=>{
-    const m=(f.properties||{}).CompanyMetaData||{};
-    let url=m.url||'';
-    if(!url && m.Links) { const l=m.Links.find(x=>x.type==='self'||x.type==='site'); if(l) url=l.href; }
-    return {
-      id:String(m.id||''), name:m.name||'Без названия', address:m.address||'',
-      phones:(m.Phones||[]).map(p=>p.formatted).filter(Boolean),
-      cat:(m.Categories||[]).map(c=>c.name).join(', '),
-      hours:(m.Hours||{}).text||'', site:url,
-    };
-  });
+  throw last;
 }
-async function bumpUsage(){
-  const k='u_'+today(); const v=await store.get([k]); const n=(+v[k]||0)+1;
-  await store.set(k,String(n)); showUsage(n);
+function kindOf(t){
+  const k=t.shop||t.amenity||t.craft||t.office||t.leisure||t.tourism||t.healthcare||'';
+  return KIND_RU[k] || (k ? k.replace(/_/g,' ') : '');
 }
-function showUsage(n){ $('usage').textContent = `Запросов к Яндексу сегодня: ${n} из 1000 (1 запрос = 50 компаний)`; }
+function toLead(e){
+  const t=e.tags||{};
+  const street=t['addr:street']||'', house=t['addr:housenumber']||'';
+  const site=t.website||t['contact:website']||t.url||'';
+  const social=[t['contact:vk'],t['contact:instagram'],t['contact:telegram']].filter(Boolean)[0]||'';
+  return {
+    id:e.type[0]+e.id, name:t.name, cat:kindOf(t),
+    address:[t['addr:city'],street,house].filter(Boolean).join(', '),
+    phones:String(t.phone||t['contact:phone']||t['contact:mobile']||'').split(/[;,]/).map(s=>s.trim()).filter(Boolean),
+    hours:t.opening_hours||'', site: site || social, chain:!!(t.brand||t['brand:wikidata']||t.operator&&t['operator:wikidata']),
+  };
+}
+async function searchOSM(city, catName){
+  const area=await findArea(city);
+  const parts=CATS[catName].map(s=>s+'["name"](area.a);').join('');
+  const q=`[out:json][timeout:90];area(id:${area.id})->.a;(${parts});out tags center 3000;`;
+  const d=await overpass(q);
+  const seen=new Set(), out=[];
+  for(const e of d.elements||[]){ if(!e.tags||!e.tags.name) continue; const l=toLead(e); if(seen.has(l.id)) continue; seen.add(l.id); out.push(l); }
+  return {area, list:out};
+}
+
+// ---------- проверка сайта ----------
+async function checkSite(url){
+  if(!WORKER) throw new Error('no-worker');
+  const r=await fetch(WORKER.replace(/\/$/,'')+'/check?url='+encodeURIComponent(url));
+  if(!r.ok) throw new Error('worker '+r.status);
+  return r.json();
+}
+async function pool(items, n, fn){
+  let i=0; const res=[];
+  await Promise.all(Array.from({length:Math.min(n,items.length)},async()=>{ while(i<items.length){ const k=i++; res[k]=await fn(items[k],k); } }));
+  return res;
+}
 
 // ---------- лиды ----------
 async function loadAll(){
   const keys = await store.keys();
-  const cfg = await store.get(['cfg','u_'+today()]);
-  try{ const c=JSON.parse(cfg.cfg||'{}'); KEY=c.key||''; if(c.city) $('city').value=c.city; }catch(e){}
-  showUsage(+cfg['u_'+today()]||0);
-  $('key').value = KEY;
+  const cfg = await store.get(['cfg']);
+  try{ const c=JSON.parse(cfg.cfg||'{}'); if(c.worker) WORKER=c.worker; if(c.city) $('city').value=c.city; }catch(e){}
+  $('worker').value = WORKER;
   const lk = keys.filter(k=>k.startsWith('l_'));
   const vals = await store.get(lk);
   leads = {};
   for (const k of lk) { try{ const l=JSON.parse(vals[k]); if(l&&l.id) leads[l.id]=l; }catch(e){} }
-  // старые служебные ключи прошлых дней — чистим
-  const oldU = keys.filter(k=>k.startsWith('u_') && k!=='u_'+today());
-  if (oldU.length) store.del(oldU);
-  $('needKey').classList.toggle('hide', !!KEY);
   renderLeads();
 }
-async function saveCfg(){ await store.set('cfg', JSON.stringify({key:KEY, city:$('city').value.trim()})); }
+async function saveCfg(){ await store.set('cfg', JSON.stringify({worker:WORKER, city:$('city').value.trim()})); }
 function saveLead(l){
-  const compact = {id:l.id,n:l.name,a:l.address,p:l.phones,c:l.cat,h:l.hours,s:l.site,st:l.status||'new',d:l.date,q:l.query};
-  return store.set('l_'+l.id, JSON.stringify(compact).slice(0,4000));
+  const c = {id:l.id,n:l.name,a:l.address,p:l.phones,c:l.cat,h:l.hours,s:l.site,st:l.status||'new',d:l.date,k:l.kind,r:(l.reasons||[]).slice(0,5),ci:l.city};
+  let s=JSON.stringify(c); if(s.length>4000){ c.r=c.r.slice(0,2); c.h=''; s=JSON.stringify(c).slice(0,4000); }
+  return store.set('l_'+l.id, s);
 }
-function unpack(l){ return l.n!==undefined ? {id:l.id,name:l.n,address:l.a,phones:l.p||[],cat:l.c,hours:l.h,site:l.s,status:l.st,date:l.d,query:l.q} : l; }
+function unpack(l){ return l.n!==undefined ? {id:l.id,name:l.n,address:l.a,phones:l.p||[],cat:l.c,hours:l.h,site:l.s,status:l.st,date:l.d,kind:l.k,reasons:l.r||[],city:l.ci} : l; }
 
-function leadCard(l, mode){
+const TAGS = {none:'🚫 сайта нет', weak:'🌐 только соцсеть', old:'🕰 сайт устарел'};
+function mapUrl(l){ return 'https://yandex.ru/maps/?text='+encodeURIComponent([l.name,l.city,l.address].filter(Boolean).join(', ')); }
+function leadCard(l){
   l = unpack(l);
-  const kind = siteKind(l.site);
-  const phones = (l.phones||[]);
+  const phones = l.phones||[];
   const st = l.status||'new';
+  const kind = l.kind||'none';
   return `<div class="card lead" data-id="${esc(l.id)}">
-    <span class="tag ${kind}">${kind==='weak'?'🌐 только соцсеть / визитка':'🚫 сайта нет'}</span>
+    <span class="tag ${kind}">${TAGS[kind]||''}</span>
     <div class="name">${esc(l.name)}</div>
     ${l.cat?`<div class="meta">${esc(l.cat)}</div>`:''}
     ${l.address?`<div class="line">📍 ${esc(l.address)}</div>`:''}
-    <div class="line">📞 ${phones.length?phones.map(esc).join(', '):'<span style="color:var(--hint)">телефон не указан</span>'}</div>
+    <div class="line">📞 ${phones.length?phones.map(esc).join(', '):'<span style="color:var(--hint)">телефон не указан — найди на карте</span>'}</div>
     ${l.hours?`<div class="line">🕒 ${esc(l.hours)}</div>`:''}
-    ${kind==='weak'?`<div class="line" style="word-break:break-all">🔗 ${esc(l.site)}</div>`:''}
+    ${l.site?`<div class="line">🔗 ${esc(l.site)}</div>`:''}
+    ${(l.reasons||[]).length?`<ul class="reasons">${l.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
     <div class="acts">
-      <button data-act="map">🗺 Карта</button>
+      <button data-act="map">🗺 Яндекс Карты</button>
+      ${l.site&&kind!=='none'?`<button data-act="site">🌐 Сайт</button>`:''}
       ${phones.length?`<button data-act="call">📞 Позвонить</button><button data-act="wa">💬 WhatsApp</button>`:''}
       <button data-act="copy">📋 Копировать</button>
     </div>
@@ -280,10 +312,11 @@ function renderLeads(){
   $('stats').innerHTML = Object.keys(STATUS).map(s=>`<div><b>${cnt[s]}</b>${STATUS[s].split(' ')[1]}</div>`).join('');
   $('filters').innerHTML = [['all','Все'],...Object.entries(STATUS)].map(([k,v])=>`<button class="chip${filter===k?' on':''}" data-f="${k}">${v}</button>`).join('');
   const q = $('q').value.trim().toLowerCase();
-  const list = all.filter(l=>(filter==='all'||(l.status||'new')===filter) && (!q || (l.name+' '+l.address+' '+l.cat).toLowerCase().includes(q)))
+  const list = all.filter(l=>(filter==='all'||(l.status||'new')===filter) && (!q || (l.name+' '+(l.address||'')+' '+(l.cat||'')).toLowerCase().includes(q)))
                   .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  $('leads').innerHTML = list.length ? list.map(l=>leadCard(l)).join('') : `<div class="empty">Здесь пока пусто.<br>Найди компании во вкладке «Поиск».</div>`;
+  $('leads').innerHTML = list.length ? list.map(leadCard).join('') : `<div class="empty">Здесь пока пусто.<br>Найди компании во вкладке «Поиск».</div>`;
 }
+function renderLeadsCountOnly(){ const n=Object.values(leads).map(unpack).filter(l=>(l.status||'new')==='new').length; $('leadCount').textContent=n?`(${n})`:''; }
 
 // ---------- действия с карточкой ----------
 function openLink(u){ if(inTG) tg.openLink(u); else window.open(u,'_blank'); }
@@ -298,56 +331,74 @@ async function onCardClick(e){
     if (card.closest('#leads')) renderLeads(); else renderLeadsCountOnly();
     return;
   }
-  const phone = (l.phones||[])[0]||'';
-  const digits = phone.replace(/\D/g,'').replace(/^8(?=\d{10}$)/,'7');
-  if (btn.dataset.act==='map') openLink(`https://yandex.ru/maps/org/${id}/`);
-  if (btn.dataset.act==='call') { location.href = 'tel:+'+digits; }
-  if (btn.dataset.act==='wa') openLink(`https://wa.me/${digits}`);
-  if (btn.dataset.act==='copy') {
-    const txt = `${l.name}\n${l.cat||''}\n${l.address||''}\n${(l.phones||[]).join(', ')}\nhttps://yandex.ru/maps/org/${id}/`;
-    try{ await navigator.clipboard.writeText(txt); toast('Скопировано'); }catch(e){ toast(txt); }
+  const digits = ((l.phones||[])[0]||'').replace(/\D/g,'').replace(/^8(?=\d{10}$)/,'7');
+  const a = btn.dataset.act;
+  if (a==='map') openLink(mapUrl(l));
+  if (a==='site') openLink(/^https?:/.test(l.site)?l.site:'http://'+l.site);
+  if (a==='call') location.href = 'tel:+'+digits;
+  if (a==='wa') openLink('https://wa.me/'+digits);
+  if (a==='copy') {
+    const txt = [l.name,l.cat,l.address,(l.phones||[]).join(', '),l.site,...(l.reasons||[]).map(r=>'— '+r)].filter(Boolean).join('\n');
+    try{ await navigator.clipboard.writeText(txt); toast('Скопировано'); }catch(err){ toast(txt); }
   }
 }
-function renderLeadsCountOnly(){ const n=Object.values(leads).map(unpack).filter(l=>(l.status||'new')==='new').length; $('leadCount').textContent=n?`(${n})`:''; }
 
 // ---------- поиск ----------
+function progress(p, text){
+  $('prog').classList.remove('hide'); $('prog').firstElementChild.style.width=Math.max(3,Math.round(p*100))+'%';
+  $('ptext').classList.toggle('hide',!text); $('ptext').textContent=text||'';
+}
 async function runSearch(){
-  const city=$('city').value.trim(), what=$('what').value.trim();
-  if(!KEY){ showTab('settings'); toast('Вставь ключ Яндекса и нажми «Сохранить»'); return; }
-  if(!what){ toast('Напиши, кого ищем: например «кафе»'); return; }
-  const pages=+$('pages').value, weakOk=$('weak').checked;
-  const query=(what+' '+city).trim();
+  const city=$('city').value.trim();
+  if(!city){ toast('Напиши город, например «Батайск»'); return; }
+  if((mode==='old'||mode==='both') && !WORKER){ showTab('settings'); toast('Для проверки сайтов укажи адрес сервера в настройках'); return; }
+  const weakOk=$('weak').checked, noChains=$('nochains').checked;
   saveCfg();
-  $('go').disabled=true; $('prog').classList.remove('hide'); const bar=$('prog').firstElementChild; bar.style.width='5%';
-  if (inTG) tg.MainButton.showProgress && tg.MainButton.showProgress();
-  $('searchMsg').innerHTML=''; $('results').innerHTML='';
-  let found=[], err='';
-  for(let p=0;p<pages;p++){
-    try{
-      const part=await yandexSearch(query,p*50);
-      found=found.concat(part); bar.style.width=Math.round((p+1)/pages*100)+'%';
-      if(part.length<50) break;
-    }catch(e){ err=e.message; break; }
-  }
-  let fresh=[], already=0, withSite=0;
+  $('go').disabled=true; $('searchMsg').innerHTML=''; $('results').innerHTML='';
+  progress(.05,'Ищу компании в OpenStreetMap…');
+  let found=[], err='', areaName=city;
+  try{ const r=await searchOSM(city,cat); found=r.list; areaName=r.area.name; }catch(e){ err=e.message; }
+  if(noChains) found=found.filter(l=>!l.chain);
+
   const date=new Date().toISOString();
-  for(const o of found){
-    if(!o.id) continue;
-    const k=siteKind(o.site);
-    if(k==='real'){withSite++;continue;}
-    if(k==='weak' && !weakOk) continue;
-    if(leads[o.id]){already++;continue;}
-    o.status='new'; o.date=date; o.query=query;
-    leads[o.id]=o; fresh.push(o);
+  const fresh=[]; let already=0, chainsHidden=0, checked=0, okSites=0, checkErr=0;
+  const isNew = l => { if(leads[l.id]){ already++; return false; } return true; };
+
+  // 1) без сайта / только соцсеть
+  if(mode==='none'||mode==='both'){
+    for(const l of found){
+      const k=siteKind(l.site);
+      if(k==='none' || (k==='weak'&&weakOk)){ if(isNew(l)){ l.kind=k; fresh.push(l); } }
+    }
   }
+  // 2) устаревшие сайты
+  if(!err && (mode==='old'||mode==='both')){
+    const withSite=found.filter(l=>siteKind(l.site)==='real' && !leads[l.id]);
+    already += found.filter(l=>siteKind(l.site)==='real' && leads[l.id]).length;
+    progress(.1,`Проверяю сайты: 0 из ${withSite.length}`);
+    await pool(withSite, 5, async(l)=>{
+      try{
+        const r=await checkSite(l.site);
+        if(r.outdated){ l.kind='old'; l.reasons=r.reasons; fresh.push(l); } else okSites++;
+      }catch(e){ checkErr++; }
+      checked++; progress(.1+.9*checked/withSite.length, `Проверяю сайты: ${checked} из ${withSite.length}`);
+    });
+  }
+  for(const l of fresh){ l.status='new'; l.date=date; l.city=areaName; leads[l.id]=l; }
   await Promise.all(fresh.map(saveLead));
-  $('go').disabled=false; setTimeout(()=>$('prog').classList.add('hide'),400);
-  if (inTG && tg.MainButton.hideProgress) tg.MainButton.hideProgress();
+
+  $('go').disabled=false; setTimeout(()=>{$('prog').classList.add('hide');$('ptext').classList.add('hide')},500);
   haptic('medium');
+  const parts=[`Компаний в OSM: <b>${found.length}</b>`];
+  if(mode!=='none') parts.push(`сайтов проверено: ${checked}, нормальных: ${okSites}`+(checkErr?`, не удалось проверить: ${checkErr}`:''));
+  if(already) parts.push(`уже были в списке: ${already}`);
   $('searchMsg').innerHTML =
     (err?`<div class="msg err">⚠️ ${esc(err)}</div>`:'') +
-    (found.length?`<div class="msg">Просмотрено: <b>${found.length}</b> · с сайтом: ${withSite} · уже были в списке: ${already}<br>Новых без сайта: <b>${fresh.length}</b></div>`:'');
-  $('results').innerHTML = fresh.map(l=>leadCard(l)).join('') || (!err?`<div class="empty">Новых компаний без сайта не нашлось.<br>Попробуй другую категорию или город.</div>`:'');
+    (!err?`<div class="msg">${parts.join(' · ')}<br>Новых лидов: <b>${fresh.length}</b></div>`:'') +
+    (checkErr && checkErr===checked && checked>0?`<div class="msg err">Сервер проверки не отвечает — проверь адрес в настройках.</div>`:'');
+  const order={old:0,none:1,weak:2};
+  fresh.sort((a,b)=>(order[a.kind]-order[b.kind]) || ((b.phones||[]).length-(a.phones||[]).length));
+  $('results').innerHTML = fresh.map(leadCard).join('') || (!err?`<div class="empty">Новых лидов не нашлось.<br>Попробуй другую категорию или режим.</div>`:'');
   renderLeadsCountOnly();
 }
 
@@ -359,21 +410,19 @@ function showTab(t){
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{haptic();showTab(b.dataset.tab)});
-$('cats').innerHTML = CATS.map(c=>`<button class="chip">${c}</button>`).join('');
-$('cats').onclick = e=>{ const b=e.target.closest('.chip'); if(!b) return; haptic(); $('what').value=b.textContent; document.querySelectorAll('#cats .chip').forEach(x=>x.classList.toggle('on',x===b)); };
+$('cats').innerHTML = Object.keys(CATS).map(c=>`<button class="chip${c===cat?' on':''}">${c}</button>`).join('');
+$('cats').onclick = e=>{ const b=e.target.closest('.chip'); if(!b) return; haptic(); cat=b.textContent; document.querySelectorAll('#cats .chip').forEach(x=>x.classList.toggle('on',x===b)); };
+$('mode').onclick = e=>{ const b=e.target.closest('button'); if(!b) return; haptic(); mode=b.dataset.m; document.querySelectorAll('#mode button').forEach(x=>x.classList.toggle('on',x===b)); };
 $('go').onclick = runSearch;
 $('results').onclick = onCardClick;
 $('leads').onclick = onCardClick;
 $('filters').onclick = e=>{ const b=e.target.closest('.chip'); if(!b) return; filter=b.dataset.f; renderLeads(); };
 $('q').oninput = renderLeads;
-$('saveKey').onclick = async ()=>{
-  KEY=$('key').value.trim(); await saveCfg(); $('needKey').classList.toggle('hide',!!KEY);
-  haptic('medium'); toast(KEY?'Ключ сохранён ✅':'Ключ удалён');
-};
+$('saveWorker').onclick = async ()=>{ WORKER=$('worker').value.trim(); await saveCfg(); haptic('medium'); toast(WORKER?'Сохранено ✅':'Адрес удалён'); };
 $('copyAll').onclick = async ()=>{
   const list=Object.values(leads).map(unpack).filter(l=>(l.status||'new')==='new');
   if(!list.length) return toast('Новых лидов нет');
-  const txt=list.map(l=>`${l.name} | ${l.cat||''} | ${l.address||''} | ${(l.phones||[]).join(', ')} | https://yandex.ru/maps/org/${l.id}/`).join('\n');
+  const txt=list.map(l=>[l.name,l.cat,l.address,(l.phones||[]).join(', '),l.site,(l.reasons||[]).join('; ')].filter(Boolean).join(' | ')).join('\n');
   try{ await navigator.clipboard.writeText(txt); toast(`Скопировано: ${list.length}`); }catch(e){ toast(txt.slice(0,3000)); }
 };
 $('wipe').onclick = ()=>{
