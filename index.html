@@ -257,6 +257,12 @@ async function checkSite(url){
   if(!r.ok) throw new Error('worker '+r.status);
   return r.json();
 }
+async function reachableHere(url){
+  let u; try{ u=new URL(/^https?:/.test(url)?url:'http://'+url); }catch(e){ return 'unknown'; }
+  const wasHttps=u.protocol==='https:'; u.protocol='https:';
+  try{ await fetch(u.href,{mode:'no-cors',signal:AbortSignal.timeout(10000)}); return 'yes'; }
+  catch(e){ return wasHttps ? 'no' : 'unknown'; }
+}
 async function pool(items, n, fn){
   let i=0; const res=[];
   await Promise.all(Array.from({length:Math.min(n,items.length)},async()=>{ while(i<items.length){ const k=i++; res[k]=await fn(items[k],k); } }));
@@ -363,10 +369,14 @@ async function runSearch(){
   progress(.05,'Ищу компании в OpenStreetMap…');
   let found=[], err='', areaName=city;
   try{ const r=await searchOSM(city,cat); found=r.list; areaName=r.area.name; }catch(e){ err=e.message; }
+  const nameCnt={}, domCnt={};
+  const dom = u => { try{ return new URL(/^https?:/.test(u)?u:'http://'+u).hostname.replace(/^www\./,''); }catch(e){ return ''; } };
+  for(const l of found){ const n=l.name.trim().toLowerCase(); nameCnt[n]=(nameCnt[n]||0)+1; if(siteKind(l.site)==='real'){ const d=dom(l.site); if(d) domCnt[d]=(domCnt[d]||0)+1; } }
+  for(const l of found){ if(nameCnt[l.name.trim().toLowerCase()]>=3 || (siteKind(l.site)==='real' && domCnt[dom(l.site)]>=2)) l.chain=true; }
   if(noChains) found=found.filter(l=>!l.chain);
 
   const date=new Date().toISOString();
-  const fresh=[]; let already=0, chainsHidden=0, checked=0, okSites=0, checkErr=0;
+  const fresh=[]; let already=0, chainsHidden=0, checked=0, okSites=0, checkErr=0, unknown=0;
   const isNew = l => { if(leads[l.id]){ already++; return false; } return true; };
 
   // 1) без сайта / только соцсеть
@@ -384,7 +394,11 @@ async function runSearch(){
     await pool(withSite, 5, async(l)=>{
       try{
         const r=await checkSite(l.site);
-        if(r.outdated){ l.kind='old'; l.reasons=r.reasons; fresh.push(l); } else okSites++;
+        if(r.alive===false && !r.status){
+          // сервер не достучался (многие сайты закрыты для зарубежных серверов) — перепроверяем с этого устройства
+          const here=await reachableHere(l.site);
+          if(here==='no'){ l.kind='old'; l.reasons=['сайт не открывается']; fresh.push(l); } else unknown++;
+        } else if(r.outdated){ l.kind='old'; l.reasons=r.reasons; fresh.push(l); } else okSites++;
       }catch(e){ checkErr++; }
       checked++; progress(.1+.9*checked/withSite.length, `Проверяю сайты: ${checked} из ${withSite.length}`);
     });
@@ -395,7 +409,7 @@ async function runSearch(){
   $('go').disabled=false; setTimeout(()=>{$('prog').classList.add('hide');$('ptext').classList.add('hide')},500);
   haptic('medium');
   const parts=[`Компаний в OSM: <b>${found.length}</b>`];
-  if(mode!=='none') parts.push(`сайтов проверено: ${checked}, нормальных: ${okSites}`+(checkErr?`, не удалось проверить: ${checkErr}`:''));
+  if(mode!=='none') parts.push(`сайтов проверено: ${checked}, нормальных: ${okSites}`+(checkErr+unknown?`, не удалось проверить: ${checkErr+unknown}`:''));
   if(already) parts.push(`уже были в списке: ${already}`);
   $('searchMsg').innerHTML =
     (err?`<div class="msg err">⚠️ ${esc(err)}</div>`:'') +
